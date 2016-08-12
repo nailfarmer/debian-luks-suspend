@@ -56,9 +56,9 @@ mount_initramfs() {
 ## Main script
 
 # extract temporary filesystem to switch to
-[ -e "${INITRAMFS_DIR}" ]] || mount_initramfs
+[ -z "${INITRAMFS_DIR}" ] || mount_initramfs
 
-[ -e "${INITRAMFS_DIR}/$SUSPEND_SCRIPT" ] # || exec $SYSTEM_SLEEP_BINARY suspend
+[ -e "${INITRAMFS_DIR}/$SUSPEND_SCRIPT" ] || exec $SYSTEM_SLEEP_BINARY suspend
 
 
 # Prepare chroot
