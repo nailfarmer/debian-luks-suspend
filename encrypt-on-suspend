@@ -11,6 +11,9 @@ stop_udev() {
 # Start udev from initramfs
 /lib/systemd/systemd-udevd --daemon --resolve-names=never
 
+# Clean up our console
+clear
+
 # Synchronize filesystems before luksSuspend 
 sync
 
