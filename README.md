@@ -3,7 +3,7 @@ debian-luks-suspend
 
 A script for [Debian][] to lock the encrypted root volume on suspend.
 
-Modified from the original [arks-luks-suspend][] for [Arch Linux][].
+Modified from the original [arch-luks-suspend][] for [Arch Linux][].
 
 When using debian's default full-disk encryption using LUKS, the encryption 
 key is kept in memory when suspending the system. This drawback defeats the 
@@ -34,8 +34,10 @@ Authors and license
 -------------------
 Copyright 2016 Jen Bowen <debianfangirl@gmail.com>
 
-Based on [work][https://github.com/vianney/arch-luks-suspend/] by 
-Vianney le Clément de Saint-Marcq <vleclement@gmail.com>
+Based on [work][] by
+ Vianney le Clément de Saint-Marcq <vleclement@gmail.com>
+
+[work]: [https://github.com/vianney/arch-luks-suspend/] 
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
