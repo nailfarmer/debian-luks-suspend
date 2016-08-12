@@ -6,7 +6,7 @@ trap 'echo "Press ENTER to continue."; read dummy' ERR
 ################################################################################
 ## Parameters and helper functions
 
-INITRAMFS_DIR=/run/initramfs
+INITRAMFS_DIR=/run/initramfs/fs
 SYSTEM_SLEEP_PATH=/usr/lib/systemd/system-sleep
 BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
@@ -36,14 +36,31 @@ ext4_cryptdevice_mount_options() {
     fi
 }
 
+mount_initramfs() {
+    local INITRD=`sed -n 's/.*BOOT_IMAGE=\/vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
+    mkdir -p  ${INITRAMFS_DIR}
+    mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
+    cd ${INITRAMFS_DIR}/..
+    zcat $INITRD > initrd.cpio
+    cd ${INITRAMFS_DIR}
+    cpio -id <  ../initrd.cpio
+    rm ../initrd.cpio
+}
+
+
+
 ################################################################################
 ## Main script
+
+# extract temporary filesystem to switch to
+[ -e "${INITRAMFS_DIR}" ]] || mount_initramfs
 
 [ -e "${INITRAMFS_DIR}/suspend" ] || exec /usr/lib/systemd/systemd-sleep suspend
 
 # Prepare chroot
 trap umount_initramfs EXIT
 for p in ${BIND_PATHS}; do
+    mkdir -p "${INITRAMFS_DIR}${p}"
     mount -o bind ${p} "${INITRAMFS_DIR}${p}"
 done
 
