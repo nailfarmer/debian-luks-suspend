@@ -1,39 +1,41 @@
-arch-luks-suspend
+debian-luks-suspend
 ==================
 
-A script for [Arch Linux][] to lock the encrypted root volume on suspend.
+A script for [Debian][] to lock the encrypted root volume on suspend.
 
-When using [dm-crypt with LUKS][] to set up full system encryption, the
-encryption key is kept in memory when suspending the system. This drawback
-defeats the purpose of encryption if you carry around your suspended laptop
-a lot. One can use the `cryptsetup luksSuspend` command to freeze all I/O and
-flush the key from memory, but special care must be taken when applying it to
-the root device.
+Modified from the original [arks-luks-suspend][] for [Arch Linux][].
 
-The `arch-linux-suspend` script replaces the default suspend mechanism of
-systemd. It changes root to initramfs in order to perform the `luksSuspend`,
-actual suspend, and `luksResume` operations. It relies on the `shutdown`
-initcpio hook to provide access to the initramfs.
+When using debian's default full-disk encryption using LUKS, the encryption 
+key is kept in memory when suspending the system. This drawback defeats the 
+purpose of encryption if you carry around your suspended laptop a lot. One 
+can use the `cryptsetup luksSuspend` command to freeze all I/O and flush the 
+key from memory, but special care must be taken when applying it to the root 
+device.
 
+The `debian-linux-suspend` script replaces the default suspend mechanism of
+systemd. It changes root to the initramfs in order to perform the 
+`luksSuspend`, actual suspend, and `luksResume` operations.
+
+This script assumes you're using systemd, and is untested in all but the most 
+generic of lvm setups.  It currently breaks under grsecurity, and probably
+won't work if you're using lvm+raid. It makes no security guarantees 
+whatsoever.  You have been warned.
+
+[Debian]: https://www.debian.org/
+[arch-luks-suspend]: https://github.com/vianney/arch-luks-suspend/
 [Arch Linux]: https://www.archlinux.org/
-[dm-crypt with LUKS]: https://wiki.archlinux.org/index.php/Dm-crypt_with_LUKS
-
 
 Installation
 -------------
 
-1. Install this AUR package: https://aur.archlinux.org/packages/arch-luks-suspend-git/  
-   Alternatively, run `make install` as root.
-2. Edit `/etc/mkinitcpio.conf` and make sure the following hooks are enabled:
-   `udev`, `encrypt`, `shutdown`, `suspend`.
-3. Rebuild the initramfs: `mkinitcpio -p linux`.
-4. Reboot.
+To install, run 'make install' and reboot.
 
-
-Author and license
+Authors and license
 -------------------
+Copyright 2016 Jen Bowen <debianfangirl@gmail.com>
 
-Copyright 2013 Vianney le Clément de Saint-Marcq <vleclement@gmail.com>
+Based on [work][https://github.com/vianney/arch-luks-suspend/] by 
+Vianney le Clément de Saint-Marcq <vleclement@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
