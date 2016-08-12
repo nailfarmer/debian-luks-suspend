@@ -14,4 +14,4 @@ After=sleep.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/openvt -ws /usr/lib/arch-luks-suspend/arch-luks-suspend
+ExecStart=/bin/openvt -ws /usr/lib/debian-luks-suspend/debian-luks-suspend
