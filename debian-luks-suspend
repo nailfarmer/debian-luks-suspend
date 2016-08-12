@@ -7,7 +7,9 @@ trap 'echo "Press ENTER to continue."; read dummy' ERR
 ## Parameters and helper functions
 
 INITRAMFS_DIR=/run/initramfs/fs
-SYSTEM_SLEEP_PATH=/usr/lib/systemd/system-sleep
+SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
+SYSTEM_SLEEP_BINARY=/lib/systemd/systemd-sleep
+SUSPEND_SCRIPT=bin/encrypt-on-suspend
 BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
 # Retrieve cryptdevice name from boot cmdline
@@ -55,7 +57,8 @@ mount_initramfs() {
 # extract temporary filesystem to switch to
 [ -e "${INITRAMFS_DIR}" ]] || mount_initramfs
 
-[ -e "${INITRAMFS_DIR}/suspend" ] || exec /usr/lib/systemd/systemd-sleep suspend
+[ -e "${INITRAMFS_DIR}/$SUSPEND_SCRIPT" ] # || exec $SYSTEM_SLEEP_BINARY suspend
+
 
 # Prepare chroot
 trap umount_initramfs EXIT
@@ -88,7 +91,7 @@ sync
 
 # Hand over execution to script inside initramfs
 cd "${INITRAMFS_DIR}"
-chroot . /suspend "$CRYPTNAME"
+chroot . /$SUSPEND_SCRIPT "$CRYPTNAME"
 
 # Restore original mount options if necessary
 if ((REMOUNT)); then
