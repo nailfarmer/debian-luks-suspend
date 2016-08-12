@@ -11,6 +11,9 @@ stop_udev() {
 # Start udev from initramfs
 /lib/systemd/systemd-udevd --daemon --resolve-names=never
 
+# Synchronize filesystems before luksSuspend 
+sync
+
 # Suspend root device
 [ -z "${cryptname}" ] || cryptsetup luksSuspend "${cryptname}"
 
