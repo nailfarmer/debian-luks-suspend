@@ -1,6 +1,12 @@
 #!/bin/sh
 
 cryptname="${1}"
+trap stop_udev EXIT
+
+stop_udev() {
+    # Stop udev from initramfs, as the real daemon from rootfs will be restarted
+    udevadm control --exit >& /dev/null
+}
 
 # Start udev from initramfs
 /usr/lib/systemd/systemd-udevd --daemon --resolve-names=never
