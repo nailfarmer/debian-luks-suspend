@@ -1,4 +1,4 @@
-#!/usr/bin/ash
+#!/bin/sh
 
 cryptname="${1}"
 
