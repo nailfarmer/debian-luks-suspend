@@ -28,7 +28,7 @@ whatsoever.  You have been warned.
 Installation
 -------------
 
-To install, run 'make install' and reboot.
+To install, run 'make install' as root and reboot.
 
 Authors and license
 -------------------
