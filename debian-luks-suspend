@@ -41,10 +41,12 @@ ext4_cryptdevice_mount_options() {
 
 mount_initramfs() {
     local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=\/vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
-    mkdir -p  ${INITRAMFS_DIR}
-    mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
+    [ -z "${INITRAMFS_DIR}" ] || mkdir -p  ${INITRAMFS_DIR}
+    mountpoint -q ${INITRAMFS_DIR} || mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
 
-    (cd ${INITRAMFS_DIR} && zcat $INITRAMFS  | cpio -id)
+    if [[ ! -e "${INITRAMFS_DIR}${SUSPEND_SCRIPT}" ]] ; then
+        (cd ${INITRAMFS_DIR} && zcat $INITRAMFS  | cpio -id)
+    fi
 
     for p in ${BIND_PATHS}; do
         mountpoint -q ${INITRAMFS_DIR}${p} || (mkdir -p "${INITRAMFS_DIR}${p}"
