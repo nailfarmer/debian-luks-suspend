@@ -16,6 +16,9 @@ The `debian-linux-suspend` script replaces the default suspend mechanism of
 systemd. It changes root to the initramfs in order to perform the 
 `luksSuspend`, actual suspend, and `luksResume` operations.
 
+When successfully completed, it uses loginctl to unlock the user session to
+reduce password fatigue.
+
 This script assumes you're using systemd, and is untested in all but the most 
 generic of lvm setups.  It currently breaks under grsecurity, and probably
 won't work if you're using lvm+raid. It makes no security guarantees 
