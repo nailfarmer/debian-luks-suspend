@@ -14,7 +14,7 @@ BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
 # Retrieve cryptdevice name from boot cmdline
 ROOT_CRYPT_DEVICE="$(sed -n 's/.*root=\([^: ]*\).*$/\1/p' /proc/cmdline)"
-CRYPTNAME="$(pvdisplay | grep 'PV Name' | sed 's/^.*\/dev\/mapper\/\(.*\)$/\1/g')"
+CRYPTNAME="$(pvdisplay -C -o pv_name --noheadings | tr -d ' ' | cut -d\/ -f4)"
 
 # run_dir DIR ARGS...
 # Run all executable scripts in directory DIR with arguments ARGS
