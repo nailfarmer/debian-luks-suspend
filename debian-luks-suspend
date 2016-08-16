@@ -87,8 +87,7 @@ if [[ "$MOUNT_OPTS" ]] && ! [[ "$MOUNT_OPTS" == *nobarrier* || "$MOUNT_OPTS" == 
 fi
 
 # Hand over execution to script inside initramfs
-cd "${INITRAMFS_DIR}"
-chroot . /$SUSPEND_SCRIPT "$CRYPTNAME"
+(cd "${INITRAMFS_DIR}" && chroot . /$SUSPEND_SCRIPT "$CRYPTNAME")
 
 
 # Restore original mount options if necessary
