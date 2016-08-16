@@ -40,14 +40,11 @@ ext4_cryptdevice_mount_options() {
 }
 
 mount_initramfs() {
-    local INITRD=`sed -n 's/.*BOOT_IMAGE=\/vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
+    local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=\/vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
     mkdir -p  ${INITRAMFS_DIR}
     mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
-    cd ${INITRAMFS_DIR}/..
-    zcat $INITRD > initrd.cpio
     cd ${INITRAMFS_DIR}
-    cpio -id <  ../initrd.cpio
-    rm ../initrd.cpio
+    zcat $INITRAMFS  | cpio -id
 }
 
 
