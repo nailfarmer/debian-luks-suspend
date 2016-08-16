@@ -28,8 +28,10 @@ run_dir() {
 umount_initramfs() {
     local p
     for p in ${BIND_PATHS}; do
-        ! mountpoint -q "${INITRAMFS_DIR}${p}" || umount "${INITRAMFS_DIR}${p}"
+        ! mountpoint -q "${INITRAMFS_DIR}${p}" || (umount "${INITRAMFS_DIR}${p}" && rmdir "${INITRAMFS_DIR}${p}")
     done
+    umount "${INITRAMFS_DIR}"
+    rmdir "${INITRAMFS_DIR}"
 }
 
 ext4_cryptdevice_mount_options() {
