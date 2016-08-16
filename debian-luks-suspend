@@ -6,7 +6,8 @@ trap 'echo "Press ENTER to continue."; read dummy' ERR
 ################################################################################
 ## Parameters and helper functions
 
-INITRAMFS_DIR=/run/initramfs/fs
+INITRAMFS_BASE_DIR="/run/initramfs/"
+INITRAMFS_DIR=$(mktemp -d -p ${INITRAMFS_BASE_DIR} )
 SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
 SYSTEM_SLEEP_BINARY=/lib/systemd/systemd-sleep
 SUSPEND_SCRIPT=bin/encrypt-on-suspend
@@ -43,16 +44,14 @@ ext4_cryptdevice_mount_options() {
 
 mount_initramfs() {
     local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=\/vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
-    [ -z "${INITRAMFS_DIR}" ] || mkdir -p  ${INITRAMFS_DIR}
-    mountpoint -q ${INITRAMFS_DIR} || mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
+    mkdir -p  ${INITRAMFS_DIR}
+    mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
 
-    if [[ ! -e "${INITRAMFS_DIR}${SUSPEND_SCRIPT}" ]] ; then
-        (cd ${INITRAMFS_DIR} && zcat $INITRAMFS  | cpio -id)
-    fi
+    (cd ${INITRAMFS_DIR} && zcat $INITRAMFS  | cpio -id)
 
     for p in ${BIND_PATHS}; do
-        mountpoint -q ${INITRAMFS_DIR}${p} || (mkdir -p "${INITRAMFS_DIR}${p}"
-            mount -o bind ${p} "${INITRAMFS_DIR}${p}")
+        mkdir -p "${INITRAMFS_DIR}${p}"
+        mount -o bind ${p} "${INITRAMFS_DIR}${p}"
     done
 }
 
