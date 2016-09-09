@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 set -e -u
 trap 'echo "Press ENTER to continue."; read dummy' ERR
@@ -43,7 +43,7 @@ ext4_cryptdevice_mount_options() {
 }
 
 mount_initramfs() {
-    local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=\/vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
+    local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=.*vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
     mkdir -p  ${INITRAMFS_DIR}
     mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
 
