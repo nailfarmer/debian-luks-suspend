@@ -5,6 +5,8 @@ A script for [Debian][] to lock the encrypted root volume on suspend.
 
 Modified from the original [arch-luks-suspend][] for [Arch Linux][].
 
+Further modified to work on Buster.
+
 When using debian's default full-disk encryption using LUKS, the encryption 
 key is kept in memory when suspending the system. This drawback defeats the 
 purpose of encryption if you carry around your suspended laptop a lot. One 
