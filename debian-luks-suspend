@@ -3,8 +3,7 @@
 set -e -u
 trap 'echo "Press ENTER to continue."; read dummy' ERR
 
-################################################################################
-## Parameters and helper functions
+
 
 INITRAMFS_BASE_DIR="/run/initramfs/"
 INITRAMFS_DIR=$(mktemp -d -p ${INITRAMFS_BASE_DIR} )
@@ -31,7 +30,7 @@ umount_initramfs() {
     for p in ${BIND_PATHS}; do
         ! mountpoint -q "${INITRAMFS_DIR}${p}" || (umount "${INITRAMFS_DIR}${p}" && rmdir "${INITRAMFS_DIR}${p}")
     done
-    umount "${INITRAMFS_DIR}"
+    umount -R "${INITRAMFS_DIR}"
     rmdir "${INITRAMFS_DIR}"
 }
 
@@ -46,18 +45,15 @@ mount_initramfs() {
     local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=.*vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
     mkdir -p  ${INITRAMFS_DIR}
     mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
-
-    (cd ${INITRAMFS_DIR} && zcat $INITRAMFS  | cpio -id)
+    
+    # extracts hybrid initrd.img to initramfs dir
+    (cd ${INITRAMFS_DIR} && dd if="${INITRAMFS}" of="${INITRAMFS_DIR}/initrd.img.gz" bs=512 skip=$(cpio -id < "${INITRAMFS}" 2>&1 | grep blocks | cut -d" " -f1) ; zcat "${INITRAMFS_DIR}/initrd.img.gz" | cpio -id ; rm "${INITRAMFS_DIR}/initrd.img.gz")
 
     for p in ${BIND_PATHS}; do
         mkdir -p "${INITRAMFS_DIR}${p}"
         mount -o bind ${p} "${INITRAMFS_DIR}${p}"
     done
 }
-
-
-
-################################################################################
 ## Main script
 trap umount_initramfs EXIT
 
@@ -88,7 +84,6 @@ fi
 # Hand over execution to script inside initramfs
 (cd "${INITRAMFS_DIR}" && chroot . /$SUSPEND_SCRIPT "$CRYPTNAME")
 
-
 # Restore original mount options if necessary
 if ((REMOUNT)); then
     mount -o remount,"$MOUNT_OPTS",barrier=1 /
@@ -101,6 +96,9 @@ systemctl start systemd-udevd.service
 
 # Run post-suspend scripts
 run_dir "${SYSTEM_SLEEP_PATH}" post suspend
+
+# pkill systemd-udevd because I can't figure out why it won't stop while inside the chroot
+pkill -f '/lib/systemd/systemd-udevd --daemon --resolve-names=never'
 
 # Unlock user sessions
 loginctl unlock-sessions
