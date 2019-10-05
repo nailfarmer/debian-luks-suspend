@@ -3,10 +3,11 @@
 cryptname="${1}"
 
 # Start udev from initramfs
-/lib/systemd/systemd-udevd --daemon --resolve-names=never
+/lib/systemd/systemd-udevd --daemon --resolve-names=never &>/dev/null
 
-# Clean up our console
-clear
+# run dummy cryptsetup to make sure we have all the needed kernel modules
+# loaded before doing an actual suspend
+[ -z "${cryptname}" ] || cryptsetup luksOpen "${cryptname}" --test-passphrase &>/dev/null || :
 
 # Synchronize filesystems before luksSuspend 
 sync
