@@ -26,10 +26,6 @@ run_dir() {
 
 # Restore chroot
 umount_initramfs() {
-    local p
-    for p in ${BIND_PATHS}; do
-        ! mountpoint -q "${INITRAMFS_DIR}${p}" || (umount "${INITRAMFS_DIR}${p}" && rmdir "${INITRAMFS_DIR}${p}")
-    done
     umount -R "${INITRAMFS_DIR}"
     rmdir "${INITRAMFS_DIR}"
 }
