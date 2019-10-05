@@ -72,9 +72,16 @@ run_dir "${SYSTEM_SLEEP_PATH}" pre suspend
 # Stop udev service and prevent it to be autostarted.
 # Otherwise, luksResume will hang waiting for udev, which is itself waiting
 # for I/O on the root device.
+# Likewise with journald service.
+systemctl stop bluetooth
 systemctl stop systemd-udevd-control.socket
 systemctl stop systemd-udevd-kernel.socket
 systemctl stop systemd-udevd.service
+journalctl --sync
+systemctl stop systemd-journald.socket
+systemctl stop systemd-journald-dev-log.socket
+systemctl stop systemd-journald-audit.socket
+systemctl stop systemd-journald 
 
 # Journalled ext4 filesystems in kernel versions 3.11+ will block suspend
 # if mounted with `barrier=1`, which is the default. Temporarily remount with
@@ -93,10 +100,15 @@ if ((REMOUNT)); then
     mount -o remount,"$MOUNT_OPTS",barrier=1 /
 fi
 
-# Restart udev
+# Restart services
+systemctl start systemd-journald.socket
+systemctl start systemd-journald-dev-log.socket
+systemctl start systemd-journald-audit.socket
+systemctl start systemd-journald.service
 systemctl start systemd-udevd-control.socket
 systemctl start systemd-udevd-kernel.socket
 systemctl start systemd-udevd.service
+systemctl start bluetooth
 
 # Run post-suspend scripts
 run_dir "${SYSTEM_SLEEP_PATH}" post suspend
