@@ -100,6 +100,8 @@ if ((REMOUNT)); then
     mount -o remount,"$MOUNT_OPTS",barrier=1 /
 fi
 
+pkill -f '/lib/systemd/systemd-udevd --daemon --resolve-names=never'
+
 # Restart services
 systemctl start systemd-journald.socket
 systemctl start systemd-journald-dev-log.socket
@@ -112,9 +114,6 @@ systemctl start bluetooth
 
 # Run post-suspend scripts
 run_dir "${SYSTEM_SLEEP_PATH}" post suspend
-
-# pkill systemd-udevd because I can't figure out why it won't stop while inside the chroot
-pkill -f '/lib/systemd/systemd-udevd --daemon --resolve-names=never'
 
 # Unlock user sessions
 loginctl unlock-sessions
