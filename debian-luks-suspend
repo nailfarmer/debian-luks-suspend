@@ -58,6 +58,11 @@ mount_initramfs() {
         mount -o bind ${p} "${INITRAMFS_DIR}${p}"
     done
 }
+
+service_is_running() {
+    systemctl show -p SubState --value "$1"
+}
+
 ## Main script
 trap umount_initramfs EXIT
 
@@ -73,15 +78,24 @@ run_dir "${SYSTEM_SLEEP_PATH}" pre suspend
 # Otherwise, luksResume will hang waiting for udev, which is itself waiting
 # for I/O on the root device.
 # Likewise with journald service.
-systemctl stop bluetooth
+bluetooth_state=`service_is_running bluetooth`
+journal_state=`service_is_running systemd-journald`
+
+if [[ "x$bluetooth_state" == "xrunning" ]] ; then
+    systemctl stop bluetooth
+fi
+
 systemctl stop systemd-udevd-control.socket
 systemctl stop systemd-udevd-kernel.socket
 systemctl stop systemd-udevd.service
-journalctl --sync
-systemctl stop systemd-journald.socket
-systemctl stop systemd-journald-dev-log.socket
-systemctl stop systemd-journald-audit.socket
-systemctl stop systemd-journald 
+
+if [[ "x$journal_state" == "xrunning" ]] ; then
+    journalctl --sync
+    systemctl stop systemd-journald.socket
+    systemctl stop systemd-journald-dev-log.socket
+    systemctl stop systemd-journald-audit.socket
+    systemctl stop systemd-journald 
+fi
 
 # Journalled ext4 filesystems in kernel versions 3.11+ will block suspend
 # if mounted with `barrier=1`, which is the default. Temporarily remount with
@@ -103,14 +117,20 @@ fi
 pkill -f '/lib/systemd/systemd-udevd --daemon --resolve-names=never'
 
 # Restart services
-systemctl start systemd-journald.socket
-systemctl start systemd-journald-dev-log.socket
-systemctl start systemd-journald-audit.socket
-systemctl start systemd-journald.service
+if [[ "x$journal_state" == "xrunning" ]] ; then
+    systemctl start systemd-journald.socket
+    systemctl start systemd-journald-dev-log.socket
+    systemctl start systemd-journald-audit.socket
+    systemctl start systemd-journald.service
+fi
+
 systemctl start systemd-udevd-control.socket
 systemctl start systemd-udevd-kernel.socket
 systemctl start systemd-udevd.service
-systemctl start bluetooth
+
+if [[ "x$bluetooth_state" == "xrunning" ]] ; then
+    systemctl start bluetooth
+fi
 
 # Run post-suspend scripts
 run_dir "${SYSTEM_SLEEP_PATH}" post suspend
