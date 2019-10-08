@@ -1,12 +1,11 @@
 #!/bin/bash 
 
-set -e -u
+set -u
 trap 'echo "Press ENTER to continue."; read dummy' ERR
 
 
 
-INITRAMFS_BASE_DIR="/run/initramfs/"
-INITRAMFS_DIR=$(mktemp -d -p ${INITRAMFS_BASE_DIR} )
+INITRAMFS_DIR="/run/initramfs/"
 SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
 SYSTEM_SLEEP_BINARY=/lib/systemd/systemd-sleep
 SUSPEND_SCRIPT=bin/encrypt-on-suspend
@@ -24,12 +23,6 @@ run_dir() {
     find "${dir}" -type f -executable -exec "{}" "$@" ";"
 }
 
-# Restore chroot
-umount_initramfs() {
-    umount -R "${INITRAMFS_DIR}"
-    rmdir "${INITRAMFS_DIR}"
-}
-
 ext4_cryptdevice_mount_options() {
     local mt="$(grep "^${1} " /proc/mounts | cut -d ' ' -f 3,4)"
     if [[ "${mt:0:5}" == "ext4 " ]]; then
@@ -39,9 +32,19 @@ ext4_cryptdevice_mount_options() {
 
 mount_initramfs() {
     local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=.*vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
-    mkdir -p  ${INITRAMFS_DIR}
-    mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
+
+    mounted=`mount | grep $INITRAMFS_DIR`
+    if [[ $? -eq 0 ]] ; then
+        return
+    fi
     
+    if [[ ! -e "$INITRAMFS_DIR" ]] ; then
+        mkdir "$INITRAMFS_DIR"
+        chmod 700 "$INITRAMFS_DIR"
+    fi
+
+    mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
+
     # extracts hybrid initrd.img to initramfs dir
     if file -L ${INITRAMFS} | grep -q "ASCII cpio archive"; then
         (cd ${INITRAMFS_DIR} &&
@@ -64,7 +67,6 @@ service_is_running() {
 }
 
 ## Main script
-trap umount_initramfs EXIT
 
 # extract temporary filesystem to switch to
 mount_initramfs
