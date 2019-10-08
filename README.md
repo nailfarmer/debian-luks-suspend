@@ -21,9 +21,14 @@ systemd. It changes root to the initramfs in order to perform the
 When successfully completed, it uses loginctl to unlock the user session to
 reduce password fatigue.
 
-This script is currently broken under gdm3 with wayland, and sddm with xorg and
-gnome, but should be functional under most other circumstances. Please report
-any breakage to the [issue tracker][].
+To avoid hangs when suspending, you will most likely need a kernel compiled
+with CONFIG_SUSPEND_SKIP_SYNC=y. The default debian kernels do not have this
+option enabled. See [the kernel team documentation][] for instructions on how
+to compile a custom kernel for debian.
+
+This script is currently broken under gdm3 with wayland, but should be 
+functional under most other environments. Please report any breakage to the 
+[issue tracker][].
 
 This script assumes you're using systemd, and is untested in all but the most 
 generic of lvm setups.  It currently breaks under grsecurity, and probably
@@ -34,6 +39,7 @@ whatsoever.  You have been warned.
 [arch-luks-suspend]: https://github.com/vianney/arch-luks-suspend/
 [Arch Linux]: https://www.archlinux.org/
 [issue tracker]: https://github.com/nailfarmer/debian-luks-suspend/issues
+[the kernel team documentation]: https://kernel-team.pages.debian.net/kernel-handbook/ch-common-tasks.html#s-common-official
 
 Installation
 -------------
