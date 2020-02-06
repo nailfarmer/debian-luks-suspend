@@ -4,15 +4,12 @@ set -u
 trap 'echo "Press ENTER to continue."; read dummy' ERR
 
 
-
 INITRAMFS_DIR="/run/initramfs/"
 SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
 SYSTEM_SLEEP_BINARY=/lib/systemd/systemd-sleep
 SUSPEND_SCRIPT=bin/encrypt-on-suspend
 BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
-# Retrieve cryptdevice name from boot cmdline
-ROOT_CRYPT_DEVICE="$(sed -n 's/.*root=\([^: ]*\).*$/\1/p' /proc/cmdline)"
 CRYPTNAME="$(pvdisplay -C -o pv_name --noheadings | tr -d ' ' | cut -d\/ -f4)"
 
 # run_dir DIR ARGS...
@@ -68,7 +65,20 @@ service_is_running() {
 
 ## Main script
 
-# extract temporary filesystem to switch to
+# parse boot command line into $kernel_cmdline
+declare -A kernel_cmdline
+for x in $(cat /proc/cmdline) ; do
+    kernel_cmdline[$(echo $x | cut -f1 -d=)]=$(echo $x | cut -f2 -d=)
+done
+
+# if plymouth is not disabled and it was used to boot, use it to resume
+[[ ${USE_PLYMOUTH="true"} == "true" && ${kernel_cmdline[splash]} ]] &&
+    export USE_PLYMOUTH="true" || export USE_PLYMOUTH="false"
+
+# Retrieve cryptdevice name from boot command line
+ROOT_CRYPT_DEVICE=${kernel_cmdline[root]}
+
+# extract initramfs to switch to during suspend
 mount_initramfs
 
 [ -e "${INITRAMFS_DIR}/$SUSPEND_SCRIPT" ] || exec $SYSTEM_SLEEP_BINARY suspend
