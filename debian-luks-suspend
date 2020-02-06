@@ -65,7 +65,7 @@ unmount_initramfs() {
     umount ${INITRAMFS_DIR}
 }
 
-sservice_is_running() {
+service_is_running() {
     systemctl is-active --quiet "$1"
 }
 
