@@ -9,6 +9,10 @@ prompt="Please unlock disk sda_crypt:"
 errmsg="Passphrase was incorrect. Please try again."
 shutdownmsg="Too many attempts to unlock, shutting down ..."
 
+power_off() {
+    echo "o" > /proc/sysrq-trigger
+}
+
 pre_suspend() {
     # Start udev from initramfs
     /lib/systemd/systemd-udevd --daemon --resolve-names=never &>/dev/null
