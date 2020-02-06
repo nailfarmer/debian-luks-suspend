@@ -67,6 +67,12 @@ unmount_initramfs() {
 
 service_is_running() {
     systemctl is-active --quiet "$1"
+    echo $?
+}
+
+radio_is_powered() {
+    [ $(rfkill -rn | grep "$1" | head -1 | cut -f4 -d\ ) == "unblocked" ]
+    echo $?
 }
 
 ## Main script
@@ -98,8 +104,9 @@ run_dir "${SYSTEM_SLEEP_PATH}" pre suspend
 # Otherwise, luksResume will hang waiting for udev, which is itself waiting
 # for I/O on the root device.
 bluetooth_state=`service_is_running bluetooth`
+bluetooth_powered=`radio_is_powered bluetooth`
 
-if [[ $bluetooth_state -eq 0 ]] ; then
+if [ $bluetooth_state -eq 0 ] ; then
     systemctl stop bluetooth
 fi
 
@@ -137,8 +144,14 @@ systemctl start systemd-udevd.service
 systemctl start NetworkManager
 systemctl start NetworkManager-dispatcher
 
-if [[ $bluetooth_state -eq 0 ]] ; then
+if [ $bluetooth_state -eq 0 ] ; then
     systemctl start bluetooth
+fi
+
+if [ $bluetooth_powered -eq 0 ] ; then
+    rfkill unblock bluetooth
+else
+    rfkill block bluetooth
 fi
 
 # Run post-suspend scripts
