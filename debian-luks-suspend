@@ -42,15 +42,10 @@ mount_initramfs() {
 
     mount -t tmpfs -o size=512m tmpfs ${INITRAMFS_DIR}
 
-    # extracts hybrid initrd.img to initramfs dir
-    if file -L ${INITRAMFS} | grep -q "ASCII cpio archive"; then
-        (cd ${INITRAMFS_DIR} &&
-            SKIP_BLOCKS=$(cpio -id < "${INITRAMFS}" 2>&1 | grep blocks | cut -d" " -f1) &&
-            dd status=none if="${INITRAMFS}" of="${INITRAMFS_DIR}/initrd.img.gz" bs=512 skip=$SKIP_BLOCKS 
-            zcat "${INITRAMFS_DIR}/initrd.img.gz" | cpio -id --quiet 
-            rm "${INITRAMFS_DIR}/initrd.img.gz")
-    else           
-        (cd ${INITRAMFS_DIR} &&  zcat ${INITRAMFS} | cpio -id --quiet)
+    unmkinitramfs "${INITRAMFS}" "${INITRAMFS_DIR}"
+    if [[ -d ${INITRAMFS_DIR}/main ]] ; then
+        INITRAMFS_DIR_ORIG=${INITRAMFS_DIR}
+        INITRAMFS_DIR=${INITRAMFS_DIR}/main
     fi
 
     for p in ${BIND_PATHS}; do
@@ -59,7 +54,18 @@ mount_initramfs() {
     done
 }
 
-service_is_running() {
+unmount_initramfs() {
+    for p in ${BIND_PATHS}; do
+        umount "${INITRAMFS_DIR}${p}"
+    done
+
+    if [[ "${INITRAMFS_DIR_ORIG}" != "${INITRAMFS_DIR}" ]] ; then
+        INITRAMFS_DIR=${INITRAMFS_DIR_ORIG}
+    fi
+    umount ${INITRAMFS_DIR}
+}
+
+sservice_is_running() {
     systemctl is-active --quiet "$1"
 }
 
@@ -128,6 +134,8 @@ systemctl start NetworkManager-dispatcher
 
 # Run post-suspend scripts
 run_dir "${SYSTEM_SLEEP_PATH}" post suspend
+
+unmount_initramfs
 
 # Unlock user sessions
 loginctl unlock-sessions
