@@ -18,3 +18,4 @@ ExecStart=/bin/openvt -ws /usr/lib/debian-luks-suspend/debian-luks-suspend
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=debian-luks-suspend
+Environment="USE_PLYMOUTH=true"

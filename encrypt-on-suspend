@@ -1,23 +1,86 @@
 #!/bin/sh
 
+set -u
+
 cryptname="${1}"
+max_tries=3
+unlocked=1
+prompt="Please unlock disk sda_crypt:"
+errmsg="Passphrase was incorrect. Please try again."
+shutdownmsg="Too many attempts to unlock, shutting down ..."
 
-# Start udev from initramfs
-/lib/systemd/systemd-udevd --daemon --resolve-names=never &>/dev/null
+pre_suspend() {
+    # Start udev from initramfs
+    /lib/systemd/systemd-udevd --daemon --resolve-names=never &>/dev/null
 
-# run dummy cryptsetup to make sure we have all the needed kernel modules
-# loaded before doing an actual suspend
-[ -z "${cryptname}" ] || cryptsetup luksOpen "${cryptname}" --test-passphrase &>/dev/null || :
+    # run dummy cryptsetup to make sure we have all the needed kernel modules
+    # loaded before doing an actual suspend
+    [ -z "${cryptname}" ] || cryptsetup luksOpen "${cryptname}" --test-passphrase &>/dev/null || :
 
-# Synchronize filesystems before luksSuspend 
-sync
+    # Synchronize filesystems before luksSuspend
+    sync
 
-# Suspend root device
-[ -z "${cryptname}" ] || cryptsetup luksSuspend "${cryptname}"
+    # Lock root volume
+    [ -z "${cryptname}" ] || cryptsetup luksSuspend "${cryptname}"
+}
 
-# Suspend the system
-echo mem > /sys/power/state
+resume_plymouth() {
+    if [ -z "${cryptname}" ] ; then
+        return
+    fi
 
-# Resume root device
-[ -z "${cryptname}" ] ||
-    while ! cryptsetup luksResume "${cryptname}"; do sleep 2; done
+    plymouthd --mode=resume --tty=`tty | sed -e "s:.*dev.*/\(.*\):\1:"`
+    plymouth --show-splash
+
+    # Allow max_tries attempts to unlock the volume.  We loop
+    # here instead of using --number-of-tries so we can
+    # provide an error message on unsuccessful attempts.
+    i=0 ; while [ $i -lt $max_tries ] ; do
+        $(plymouth ask-for-password --number-of-tries=1 \
+            --command="cryptsetup luksResume ${cryptname} --tries=1" \
+            --prompt="$prompt")
+        if [ $? -eq 0 ] ; then
+            unlocked=0
+            break
+        fi
+        plymouth display-message --text="$errmsg"
+        i=$((i+1))
+    done
+
+    ppid=$(pidof plymouthd)
+    plymouth quit
+    wait $ppid
+}
+
+resume() {
+    if [ -z "${cryptname}" ] ; then
+        return
+    fi
+    i=0 ; while [ $i -lt $max_tries ] ; do
+        cryptsetup luksResume "${cryptname}" --tries=1
+        if [ $? -eq 0 ] ; then
+            unlocked=0
+            break
+        fi
+        i=$((i+1))
+    done
+}
+
+
+#### main loop
+
+pre_suspend
+
+while [ $unlocked -eq 1 ] ; do
+    # Suspend the system
+    echo mem > /sys/power/state
+
+    # Resume root device
+    if tty>/dev/null && [ -x $(which plymouthd) ] && [ ${USE_PLYMOUTH="false"} = "true" ] ; then
+        resume_plymouth
+    else
+        resume
+    fi
+done
+
+return 0

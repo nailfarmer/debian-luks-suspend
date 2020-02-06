@@ -7,6 +7,8 @@ Modified from the original [arch-luks-suspend][] for [Arch Linux][].
 
 Further modified to work on Buster.
 
+Now with optional gui support through Plymouth bootsplash!
+
 When using debian's default full-disk encryption using LUKS, the encryption 
 key is kept in memory when suspending the system. This drawback defeats the 
 purpose of encryption if you carry around your suspended laptop a lot. One 
@@ -43,8 +45,9 @@ whatsoever.  You have been warned.
 
 Installation
 -------------
-
-To install, run 'make install' as root and reboot.
+To install, run 'make install' as root and reboot. For plymouth splash support,
+run 'make plymouth', 'make install', and reboot.  To remove plymouth
+splash support, run 'make noplyouth', 'make install', and reboot.
 
 Authors and license
 -------------------
