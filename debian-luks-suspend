@@ -96,6 +96,12 @@ run_dir "${SYSTEM_SLEEP_PATH}" pre suspend
 # Stop udev service and prevent it to be autostarted.
 # Otherwise, luksResume will hang waiting for udev, which is itself waiting
 # for I/O on the root device.
+bluetooth_state=`service_is_running bluetooth`
+
+if [[ $bluetooth_state -eq 0 ]] ; then
+    systemctl stop bluetooth
+fi
+
 systemctl stop NetworkManager-dispatcher
 systemctl stop NetworkManager
 
@@ -131,6 +137,10 @@ systemctl start systemd-udevd.service
 
 systemctl start NetworkManager
 systemctl start NetworkManager-dispatcher
+
+if [[ $bluetooth_state -eq 0 ]] ; then
+    systemctl start bluetooth
+fi
 
 # Run post-suspend scripts
 run_dir "${SYSTEM_SLEEP_PATH}" post suspend
