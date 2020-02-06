@@ -47,7 +47,7 @@ Installation
 -------------
 To install, run 'make install' as root and reboot. For plymouth splash support,
 run 'make plymouth', 'make install', and reboot.  To remove plymouth
-splash support, run 'make noplyouth', 'make install', and reboot.
+splash support, run 'make noplymouth', 'make install', and reboot.
 
 Authors and license
 -------------------
