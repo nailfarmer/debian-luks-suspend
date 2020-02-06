@@ -28,9 +28,7 @@ with CONFIG_SUSPEND_SKIP_SYNC=y. The default debian kernels do not have this
 option enabled. See [the kernel team documentation][] for instructions on how
 to compile a custom kernel for debian.
 
-This script is currently broken under gdm3 with wayland, but should be 
-functional under most other environments. Please report any breakage to the 
-[issue tracker][].
+Please report any breakage to the [issue tracker][].
 
 This script assumes you're using systemd, and is untested in all but the most 
 generic of lvm setups.  It currently breaks under grsecurity, and probably
