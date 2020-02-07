@@ -86,7 +86,7 @@ for x in $(cat /proc/cmdline) ; do
 done
 
 # if plymouth is not disabled and it was used to boot, use it to resume
-[[ ${USE_PLYMOUTH="true"} == "true" && ${kernel_cmdline[splash]} ]] &&
+[[ ${USE_PLYMOUTH="true"} == "true" && -n "${kernel_cmdline[splash]+x}" ]] &&
     export USE_PLYMOUTH="true" || export USE_PLYMOUTH="false"
 
 # Retrieve cryptdevice name from boot command line
