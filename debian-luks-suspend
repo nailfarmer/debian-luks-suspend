@@ -5,6 +5,7 @@ trap 'echo "Press ENTER to continue."; read dummy' ERR
 
 
 INITRAMFS_DIR="/run/initramfs/"
+INITRAMFS_DIR_ORIG=${INITRAMFS_DIR}
 SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
 SYSTEM_SLEEP_BINARY=/lib/systemd/systemd-sleep
 SUSPEND_SCRIPT=bin/encrypt-on-suspend
@@ -59,7 +60,7 @@ unmount_initramfs() {
         umount "${INITRAMFS_DIR}${p}"
     done
     
-    if [[ -n "${INITRAMFS_DIR_ORIG+x}" && "${INITRAMFS_DIR_ORIG}" != "${INITRAMFS_DIR}" ]] ; then
+    if [[ "${INITRAMFS_DIR_ORIG}" != "${INITRAMFS_DIR}" ]] ; then
         INITRAMFS_DIR=${INITRAMFS_DIR_ORIG}
     fi
     umount ${INITRAMFS_DIR}
