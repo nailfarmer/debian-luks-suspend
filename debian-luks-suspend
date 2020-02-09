@@ -58,8 +58,8 @@ unmount_initramfs() {
     for p in ${BIND_PATHS}; do
         umount "${INITRAMFS_DIR}${p}"
     done
-
-    if [[ "${INITRAMFS_DIR_ORIG}" != "${INITRAMFS_DIR}" ]] ; then
+    
+    if [[ -n "${INITRAMFS_DIR_ORIG+x}" && "${INITRAMFS_DIR_ORIG}" != "${INITRAMFS_DIR}" ]] ; then
         INITRAMFS_DIR=${INITRAMFS_DIR_ORIG}
     fi
     umount ${INITRAMFS_DIR}
@@ -86,7 +86,7 @@ for x in $(cat /proc/cmdline) ; do
 done
 
 # if plymouth is not disabled and it was used to boot, use it to resume
-[[ ${USE_PLYMOUTH="true"} == "true" && ${kernel_cmdline[splash]} ]] &&
+[[ ${USE_PLYMOUTH="true"} == "true" && -n "${kernel_cmdline[splash]+x}" ]] &&
     export USE_PLYMOUTH="true" || export USE_PLYMOUTH="false"
 
 # Retrieve cryptdevice name from boot command line
