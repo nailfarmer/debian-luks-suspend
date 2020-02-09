@@ -3,10 +3,10 @@
 set -u
 
 cryptname="${1}"
-max_tries=3
+max_tries=5
 unlocked=1
 prompt="Please unlock disk sda_crypt:"
-errmsg="Passphrase was incorrect. Please try again."
+base_errmsg="Passphrase was incorrect. ? attempts to unlock remaining."
 shutdownmsg="Too many attempts to unlock, shutting down ..."
 
 power_off() {
@@ -47,9 +47,19 @@ resume_plymouth() {
             unlocked=0
             break
         fi
-        plymouth display-message --text="$errmsg"
         i=$((i+1))
+        if [ $i -lt $max_tries ] ; then
+            errmsg=`echo ${base_errmsg} | sed -e "s:\?:$((max_tries-i)):"`
+            plymouth display-message --text="$errmsg"
+        fi
     done
+
+    if [ $unlocked -eq 1 ] ; then
+        clear
+        plymouth display-message --text="$shutdownmsg"
+        sleep 1 
+        power_off
+    fi
 
     ppid=$(pidof plymouthd)
     plymouth quit
@@ -61,13 +71,24 @@ resume() {
         return
     fi
     i=0 ; while [ $i -lt $max_tries ] ; do
-        cryptsetup luksResume "${cryptname}" --tries=1
+        clear
+        if [ $i -gt 0 ] ; then
+            errmsg=`echo ${base_errmsg} | sed -e "s:\?:$((max_tries-i)):"`
+            echo $errmsg
+        fi
+        cryptsetup luksResume "${cryptname}" --tries=1 2>/dev/null
         if [ $? -eq 0 ] ; then
             unlocked=0
             break
         fi
         i=$((i+1))
-    done
+   done
+    if [ $unlocked -eq 1 ] ; then
+        clear
+        echo $shutdownmsg
+        sleep 1
+        power_off
+    fi
 }
 
 
@@ -75,16 +96,14 @@ resume() {
 
 pre_suspend
 
-while [ $unlocked -eq 1 ] ; do
-    # Suspend the system
-    echo mem > /sys/power/state
+# Suspend the system
+echo mem > /sys/power/state
 
-    # Resume root device
-    if tty>/dev/null && [ -x $(which plymouthd) ] && [ ${USE_PLYMOUTH="false"} = "true" ] ; then
-        resume_plymouth
-    else
-        resume
-    fi
-done
+# Resume root device
+if tty>/dev/null && [ -x $(which plymouthd) ] && [ ${USE_PLYMOUTH="false"} = "true" ] ; then
+    resume_plymouth
+else
+    resume
+fi
 
 return 0
