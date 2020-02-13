@@ -72,7 +72,7 @@ service_is_running() {
 }
 
 radio_is_powered() {
-    [ $(rfkill -rn | grep "$1" | head -1 | cut -f4 -d\ ) == "unblocked" ]
+    [ "$(rfkill -rn | grep "$1" | head -1 | cut -f4 -d\ )" == "unblocked" ]
     echo $?
 }
 
