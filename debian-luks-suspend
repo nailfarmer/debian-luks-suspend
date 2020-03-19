@@ -29,7 +29,7 @@ ext4_cryptdevice_mount_options() {
 }
 
 mount_initramfs() {
-    local INITRAMFS=`sed -n 's/.*BOOT_IMAGE=.*vmlinuz-\([^: ]*\).*$/\/boot\/initrd.img-\1/p' /proc/cmdline`
+    local INITRAMFS=$1
 
     mounted=`mount | grep $INITRAMFS_DIR`
     if [[ $? -eq 0 ]] ; then
@@ -94,7 +94,8 @@ done
 ROOT_CRYPT_DEVICE=${kernel_cmdline[root]}
 
 # extract initramfs to switch to during suspend
-mount_initramfs
+INITRAMFS=`echo "/boot/${kernel_cmdline[BOOT_IMAGE]//vmlinuz/initrd.img}"`
+mount_initramfs $INITRAMFS
 
 [ -e "${INITRAMFS_DIR}/$SUSPEND_SCRIPT" ] || exec $SYSTEM_SLEEP_BINARY suspend
 
