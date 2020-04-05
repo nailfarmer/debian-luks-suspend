@@ -23,14 +23,14 @@ systemd. It changes root to the initramfs in order to perform the
 When successfully completed, it uses loginctl to unlock the user session to
 reduce password fatigue.
 
-To avoid hangs when suspending, you will most likely need a kernel compiled
-with CONFIG_SUSPEND_SKIP_SYNC=y. The default debian kernels do not have this
-option enabled. See [the kernel team documentation][] for instructions on how
-to compile a custom kernel for debian.
+With kernels prior to 5.6, to avoid hangs when suspending, you will need a
+kernel compiled with CONFIG_SUSPEND_SKIP_SYNC=y. The default debian kernels
+do not have this option enabled. See [the kernel team documentation][] for
+instructions on how to compile a custom kernel for debian.
 
 Please report any breakage to the [issue tracker][].
 
-This script assumes you're using systemd, and is untested in all but the most 
+The scripts assume you're using systemd, and are untested in all but the most
 generic of lvm setups.  It currently breaks under grsecurity, and probably
 won't work if you're using lvm+raid. It makes no security guarantees 
 whatsoever.  You have been warned.
