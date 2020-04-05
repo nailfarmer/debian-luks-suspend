@@ -56,14 +56,10 @@ mount_initramfs() {
 }
 
 unmount_initramfs() {
-    for p in ${BIND_PATHS}; do
-        umount "${INITRAMFS_DIR}${p}"
-    done
-    
     if [[ "${INITRAMFS_DIR_ORIG}" != "${INITRAMFS_DIR}" ]] ; then
         INITRAMFS_DIR=${INITRAMFS_DIR_ORIG}
     fi
-    umount ${INITRAMFS_DIR}
+    umount -R ${INITRAMFS_DIR}
 }
 
 service_is_running() {
