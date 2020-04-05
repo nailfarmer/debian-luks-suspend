@@ -8,7 +8,6 @@ INITRAMFS_DIR_ORIG=${INITRAMFS_DIR}
 SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
 SYSTEM_SLEEP_BINARY=/lib/systemd/systemd-sleep
 SUSPEND_SCRIPT=bin/encrypt-on-suspend
-RFKILL=/usr/sbin/rfkill
 BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
 CRYPTNAME="$(pvdisplay -C -o pv_name --noheadings | tr -d ' ' | cut -d\/ -f4)"
@@ -67,11 +66,6 @@ service_is_running() {
     echo $?
 }
 
-radio_is_powered() {
-    [ -x $RFKILL ] && [ "$($RFKILL -rn | grep "$1" | head -1 | cut -f4 -d\ )" == "unblocked" ]
-    echo $?
-}
-
 parse_command_line() {
     for i in "$@" ; do
         case $i in
@@ -109,7 +103,6 @@ run_dir "${SYSTEM_SLEEP_PATH}" pre suspend
 # Otherwise, luksResume will hang waiting for udev, which is itself waiting
 # for I/O on the root device.
 bluetooth_state=`service_is_running bluetooth`
-bluetooth_powered=`radio_is_powered bluetooth`
 
 if [ $bluetooth_state -eq 0 ] ; then
     systemctl stop bluetooth
@@ -152,12 +145,6 @@ systemctl start NetworkManager-dispatcher
 
 if [ $bluetooth_state -eq 0 ] ; then
     systemctl start bluetooth
-fi
-
-if [ $bluetooth_powered -eq 0 ] ; then
-    [ -x $RFKILL ] && $RFKILL unblock bluetooth
-else
-    [ -x $RFKILL ] && $RFKILL block bluetooth
 fi
 
 # Run post-suspend scripts
