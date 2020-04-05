@@ -93,6 +93,13 @@ resume() {
 
 
 #### main loop
+for i in "$@" ; do
+    case $i in
+        -g|--gui)
+            USE_PLYMOUTH="true"
+        ;;
+    esac
+done
 
 pre_suspend
 

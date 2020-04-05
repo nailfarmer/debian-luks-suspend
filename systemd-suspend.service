@@ -14,8 +14,7 @@ After=sleep.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/openvt -c9 -ws /usr/lib/debian-luks-suspend/debian-luks-suspend
+ExecStart=/bin/openvt -c9 -ws -- /usr/lib/debian-luks-suspend/debian-luks-suspend -g
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=debian-luks-suspend
-Environment="USE_PLYMOUTH=true"

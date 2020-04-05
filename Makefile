@@ -4,10 +4,10 @@ INSTALL_DIR := /usr/lib/debian-luks-suspend
 INITRAMFS_TOOLS := /etc/initramfs-tools/hooks/
 
 plymouth:
-	@sed -i 's/"USE_PLYMOUTH=\(.*\)"/"USE_PLYMOUTH=true"/' systemd-suspend.service
+	@sed -i 's;d/debian-luks-suspend.*;d/debian-luks-suspend -g;' systemd-suspend.service
 
 noplymouth:
-	@sed -i 's/"USE_PLYMOUTH=\(.*\)"/"USE_PLYMOUTH=false"/' systemd-suspend.service
+	@sed -i 's;d/debian-luks-suspend.*;d/debian-luks-suspend;' systemd-suspend.service
 
 all:
 
