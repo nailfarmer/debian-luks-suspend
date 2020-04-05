@@ -132,7 +132,8 @@ if ((REMOUNT)); then
     mount -o remount,"$MOUNT_OPTS",barrier=1 /
 fi
 
-pkill -f '/lib/systemd/systemd-udevd --daemon --resolve-names=never'
+# Quit the temporary udev process from the chroot
+udevadm control --exit
 
 # Restart services
 systemctl start systemd-udevd-control.socket
