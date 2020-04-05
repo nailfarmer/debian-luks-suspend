@@ -131,6 +131,8 @@ fi
 # Nice it to help reduce race conditions
 (cd "${INITRAMFS_DIR}" && nice -n -20 chroot . /$SUSPEND_SCRIPT $CRYPTNAME $CHROOT_ARGS)
 
+[ -e /sys/power/sync_on_suspend ] && echo "1" > /sys/power/sync_on_suspend
+
 # Restore original mount options if necessary
 if ((REMOUNT)); then
     mount -o remount,"$MOUNT_OPTS",barrier=1 /
