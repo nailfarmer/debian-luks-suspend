@@ -11,6 +11,7 @@ SUSPEND_SCRIPT=bin/encrypt-on-suspend
 BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
 CRYPTNAME="$(pvdisplay -C -o pv_name --noheadings | tr -d ' ' | cut -d\/ -f4)"
+CHROOT_ARGS=""
 
 # run_dir DIR ARGS...
 # Run all executable scripts in directory DIR with arguments ARGS
