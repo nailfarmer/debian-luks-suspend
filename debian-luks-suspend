@@ -79,6 +79,7 @@ parse_command_line() {
 
 ## Main script
 loginctl lock-sessions
+
 parse_command_line "$@"
 
 # parse boot command line into $kernel_cmdline
@@ -136,6 +137,12 @@ if [[ "$MOUNT_OPTS" ]] && ! [[ "$MOUNT_OPTS" == *nobarrier* || "$MOUNT_OPTS" == 
     REMOUNT=1
     mount -o remount,"$MOUNT_OPTS",barrier=0 /
 fi
+
+# pre 5.6, sync manually for safety before our quick suspend
+[ ! -e /sys/power/sync_on_suspend ] && sync
+
+# do a very quick and dirty normal suspend and resume
+rtcwake -m mem -s 1 >/dev/null
 
 # If we have a kernel that supports manual sync before suspend, enable it
 [ -e /sys/power/sync_on_suspend ] && echo "0" > /sys/power/sync_on_suspend
