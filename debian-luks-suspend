@@ -79,7 +79,6 @@ parse_command_line() {
 
 ## Main script
 loginctl lock-sessions
-TERM=linux clear
 parse_command_line "$@"
 
 # parse boot command line into $kernel_cmdline
@@ -87,6 +86,9 @@ declare -A kernel_cmdline
 for x in $(cat /proc/cmdline) ; do
     kernel_cmdline[$(echo $x | cut -f1 -d=)]=$(echo $x | cut -f2 -d=)
 done
+
+# clean up the terminal if a quiet console is requested
+[[ -n "${kernel_cmdline[quiet]+x}" ]] && TERM=linux clear
 
 # Retrieve cryptdevice name from boot command line
 ROOT_CRYPT_DEVICE=${kernel_cmdline[root]}
